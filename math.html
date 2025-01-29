@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algebra Math Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f8ff;
+    }
+    #game {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      width: 200px;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .score, .accuracy {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    .timer {
+      margin-top: 10px;
+      color: red;
+    }
+    #options {
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    .option-field {
+      margin: 10px 0;
+    }
+    #endGamePanel {
+      display: none;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Options Panel -->
+  <div id="options">
+    <h3>Game Settings</h3>
+    <div class="option-field">
+      <label for="playerName">Enter Your Name: </label>
+      <input type="text" id="playerName" placeholder="Player Name">
+    </div>
+    <div class="option-field">
+      <label for="timerInput">Set Timer (seconds): </label>
+      <input type="number" id="timerInput" value="15" min="5" max="60">
+    </div>
+    <button id="startGame">Start Game</button>
+  </div>
+
+  <!-- Game Area -->
+  <div id="game" style="display:none;">
+    <h1>Algebra Math Game</h1>
+    <p id="playerNameDisplay"></p>
+    <p class="timer">Time Left: <span id="time">15</span> seconds</p>
+    <p id="question">Question: Solve for x: 2x + 5 = 15</p>
+    <input type="number" id="answerInput" placeholder="Your answer">
+    <br>
+    <button id="submit">Submit</button>
+    <p class="message" id="message"></p>
+    <p class="score" id="score">Score: 0</p>
+  </div>
+
+  <!-- End Game Panel -->
+  <div id="endGamePanel">
+    <h2>Game Over</h2>
+    <p>Your Final Score: <span id="finalScore">0</span></p>
+    <p>Total Questions Answered: <span id="totalQuestions">0</span></p>
+    <p>Your Accuracy: <span id="finalAccuracy">0%</span></p>
+    <button id="restartGame">Restart Game</button>
+  </div>
+
+  <script>
+    let score = 0;
+    let correctAnswers = 0;
+    let totalQuestions = 0;
+    let timeLeft = 15;
+    let timer;
+    let playerName = "Player";
+
+    // Function to generate a random algebraic question
+    function generateQuestion() {
+      // Random coefficients for the algebra equation
+      const a = Math.floor(Math.random() * 10) + 1; // Random coefficient between 1 and 10
+      const b = Math.floor(Math.random() * 10) + 1; // Random constant between 1 and 10
+      const c = Math.floor(Math.random() * 20) + 1; // Random result between 1 and 20
+      
+      // Create the equation as a string
+      const question = `${a}x + ${b} = ${c}`;
+      
+      // Solve the equation for x
+      const answer = (c - b) / a;
+      return { question, answer };
+    }
+
+    // Function to start the timer
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("time").textContent = timeLeft;
+
+        // If time runs out, show end game screen
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          showEndGame();
+        }
+      }, 1000);
+    }
+
+    // Function to generate the next question
+    function nextQuestion() {
+      timeLeft = parseInt(document.getElementById("timerInput").value);  // Get the timer value from the input field
+      document.getElementById("time").textContent = timeLeft;
+      totalQuestions++;  // Increment total questions attempted
+      currentQuestion = generateQuestion();
+      document.getElementById("question").textContent = `Solve for x: ${currentQuestion.question}`;
+      document.getElementById("answerInput").value = ""; // Clear input
+      startTimer(); // Restart the timer
+    }
+
+    // Function to update the accuracy
+    function updateAccuracy() {
+      const accuracy = (correctAnswers / totalQuestions) * 100;
+      document.getElementById("finalAccuracy").textContent = `${accuracy.toFixed(2)}%`;
+    }
+
+    // Show end game panel
+    function showEndGame() {
+      document.getElementById("finalScore").textContent = score;
+      document.getElementById("totalQuestions").textContent = totalQuestions;
+      updateAccuracy();
+      document.getElementById("game").style.display = "none";  // Hide game area
+      document.getElementById("endGamePanel").style.display = "block";  // Show end game area
+    }
+
+    // Handle the submit button
+    document.getElementById("submit").addEventListener("click", () => {
+      const userAnswer = parseFloat(document.getElementById("answerInput").value);
+      if (userAnswer === currentQuestion.answer) {
+        score++;
+        correctAnswers++;
+        document.getElementById("message").textContent = "Correct!";
+      } else {
+        document.getElementById("message").textContent = `Wrong! The correct answer was ${currentQuestion.answer}.`;
+      }
+
+      // Update score and move to next question
+      document.getElementById("score").textContent = `Score: ${score}`;
+      nextQuestion();
+    });
+
+    // Start the game with the player's settings
+    document.getElementById("startGame").addEventListener("click", () => {
+      playerName = document.getElementById("playerName").value || "Player";  // Get the player's name
+      timeLeft = parseInt(document.getElementById("timerInput").value) || 15;  // Get the timer value
+      document.getElementById("playerNameDisplay").textContent = `Welcome, ${playerName}!`;
+      document.getElementById("options").style.display = "none";  // Hide options
+      document.getElementById("game").style.display = "block";  // Show game area
+      nextQuestion();  // Start the first question and timer
+    });
+
+    // Restart game
+    document.getElementById("restartGame").addEventListener("click", () => {
+      score = 0;
+      correctAnswers = 0;
+      totalQuestions = 0;
+      timeLeft = parseInt(document.getElementById("timerInput").value) || 15;
+      document.getElementById("endGamePanel").style.display = "none";
+      document.getElementById("options").style.display = "block";
+      document.getElementById("
